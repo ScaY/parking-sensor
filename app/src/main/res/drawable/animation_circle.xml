@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/selected"
+    android:oneshot="false">
+    <item
+        android:drawable="@drawable/textview_circle_blue_1"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/textview_circle_blue_2"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/textview_circle_blue_3"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/textview_circle_blue_4"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/textview_circle_blue_5"
+        android:duration="100" />
+</animation-list>
