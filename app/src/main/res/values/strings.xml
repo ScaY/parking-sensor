@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Parking sensor - Client</string>
+    <string name="app_name">Parking sensor</string>
     <string name="title_activity_sensor">sensor</string>
 </resources>
