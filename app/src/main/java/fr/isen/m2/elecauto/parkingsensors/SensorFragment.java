@@ -26,8 +26,9 @@ public class SensorFragment extends Fragment {
 
     private TextView tvDistance;
     private BluetoothSocket bluetoothSocket;
+    private AnimationSet animation;
 
-    public static SensorFragment newInstance(BluetoothSocket mmSocket){
+    public static SensorFragment newInstance(BluetoothSocket mmSocket) {
         SensorFragment fragment = new SensorFragment();
         fragment.bluetoothSocket = mmSocket;
         return fragment;
@@ -52,13 +53,10 @@ public class SensorFragment extends Fragment {
         fadeOut.setStartOffset(1000);
         fadeOut.setDuration(1000);
 
-        final AnimationSet animation = new AnimationSet(false);
+        animation = new AnimationSet(false);
         animation.addAnimation(fadeIn);
         animation.addAnimation(fadeOut);
         tvDistance.setAnimation(animation);
-
-        // Start the animation.
-        animation.start();
 
         readData();
 
@@ -121,10 +119,12 @@ public class SensorFragment extends Fragment {
                         Log.d(MainActivity.TAG, "Byte at " + i + " -> " + String.valueOf(valueChar));
                     }
                     Log.d(MainActivity.TAG, "finalValue " + tmpValue);
-                    final String finalValue = tmpValue;
+                    final String finalValue = tmpValue.replaceAll("\\s+", "");
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            // Start the animation.
+                            animation.start();
                             tvDistance.setText(finalValue);
                         }
                     });

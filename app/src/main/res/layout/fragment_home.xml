@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical">
 
     <TextView
@@ -74,7 +76,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="50dp"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -90,5 +93,42 @@
             android:layout_height="wrap_content"
             android:background="@mipmap/start"
             android:visibility="gone" />
+
+
+        <GridLayout
+            android:id="@+id/loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alignmentMode="alignBounds"
+            android:columnCount="3"
+            android:columnOrderPreserved="false"
+            android:useDefaultMargins="true"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@mipmap/ic_smart_pad" />
+
+            <com.zl.reik.dilatingdotsprogressbar.DilatingDotsProgressBar
+                android:id="@+id/progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:color="#8C2323"
+                android:radius="5dp"
+                app:dd_animationDuration="500"
+                app:dd_horizontalSpacing="4dp"
+                app:dd_numDots="3"
+                app:dd_scaleMultiplier="1.5" />
+
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@mipmap/ic_electro_pad" />
+
+        </GridLayout>
+
     </LinearLayout>
 </LinearLayout>
