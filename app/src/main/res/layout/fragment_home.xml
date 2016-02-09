@@ -108,7 +108,7 @@
             <ImageView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:background="@mipmap/ic_smart_pad" />
+                android:background="@mipmap/ic_smartphone" />
 
             <com.zl.reik.dilatingdotsprogressbar.DilatingDotsProgressBar
                 android:id="@+id/progress"
@@ -126,7 +126,7 @@
             <ImageView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:background="@mipmap/ic_electro_pad" />
+                android:background="@mipmap/ic_electronic_card" />
 
         </GridLayout>
 
