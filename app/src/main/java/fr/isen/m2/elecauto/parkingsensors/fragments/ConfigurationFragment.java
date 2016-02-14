@@ -1,4 +1,4 @@
-package fr.isen.m2.elecauto.parkingsensors;
+package fr.isen.m2.elecauto.parkingsensors.fragments;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -27,6 +27,10 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
+import fr.isen.m2.elecauto.parkingsensors.R;
+import fr.isen.m2.elecauto.parkingsensors.activities.MainActivity;
+import fr.isen.m2.elecauto.parkingsensors.utils.ConfigurationException;
+
 /**
  * Created by stephane on 08/02/16.
  */
@@ -46,7 +50,9 @@ public class ConfigurationFragment extends Fragment {
     private ImageView imgPaired;
     private ImageView imgConnected;
     private ImageButton btnRefresh;
-    private ImageButton btnStart;
+    private ImageButton btnParking;
+    private ImageButton btnAlarm;
+    private LinearLayout llSelectionMode;
     private GridLayout glLoading;
     private com.zl.reik.dilatingdotsprogressbar.DilatingDotsProgressBar dotsProgressBar;
 
@@ -67,9 +73,11 @@ public class ConfigurationFragment extends Fragment {
         imgConnected = (ImageView) view.findViewById(R.id.home_img_connected);
         imgPaired = (ImageView) view.findViewById(R.id.home_img_paired);
         btnRefresh = (ImageButton) view.findViewById(R.id.home_btn_refresh);
-        btnStart = (ImageButton) view.findViewById(R.id.home_btn_start);
+        btnParking = (ImageButton) view.findViewById(R.id.home_btn_start_parking);
+        btnAlarm = (ImageButton) view.findViewById(R.id.home_btn_start_alarm);
         glLoading = (GridLayout) view.findViewById(R.id.loading);
         dotsProgressBar = (DilatingDotsProgressBar) view.findViewById(R.id.progress);
+        llSelectionMode = (LinearLayout) view.findViewById(R.id.ll_selection_mode);
 
         // Initialize the configuration state image
         setImageView(imgBluetooth, R.mipmap.invalid);
@@ -83,25 +91,44 @@ public class ConfigurationFragment extends Fragment {
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                displayLoading();
-                boolean bluetooth = checkBluetooth();
-                if (bluetooth) {
-                    boolean retrievedPairedDevice = retrievePairedDevice();
-                    if (retrievedPairedDevice) {
-                        connectDevice();
+                try {
+                    displayLoading();
+                    boolean bluetooth = checkBluetooth();
+                    if (bluetooth) {
+                        boolean retrievedPairedDevice = retrievePairedDevice();
+                        if (retrievedPairedDevice) {
+                            connectDevice();
+                            //displayStartButton();
+                        }
                     }
+                } catch (ConfigurationException e) {
+                    Log.e(MainActivity.TAG, e.getMessage());
+                    displayRefreshButton();
                 }
             }
         });
 
         // Start to retrieve the distance from the sensor
         // and replace the fragment to display the distance.
-        btnStart.setOnClickListener(new View.OnClickListener() {
+        btnParking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.replace(R.id.container, SensorFragment.newInstance(bluetoothSocket));
+                ft.replace(R.id.container, ParkingFragment.newInstance(bluetoothSocket));
+                ft.addToBackStack(MainActivity.TAG);
+                ft.commit();
+            }
+        });
+
+        // Start to listen to a distance variation
+        btnAlarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.replace(R.id.container, AlarmFragment.newInstance(bluetoothSocket));
+                ft.addToBackStack(MainActivity.TAG);
                 ft.commit();
             }
         });
@@ -117,7 +144,7 @@ public class ConfigurationFragment extends Fragment {
      */
     private void displayStartButton() {
         btnRefresh.setVisibility(View.GONE);
-        btnStart.setVisibility(View.VISIBLE);
+        llSelectionMode.setVisibility(View.VISIBLE);
         glLoading.setVisibility(View.GONE);
     }
 
@@ -126,13 +153,13 @@ public class ConfigurationFragment extends Fragment {
      */
     private void displayRefreshButton() {
         btnRefresh.setVisibility(View.VISIBLE);
-        btnStart.setVisibility(View.GONE);
+        llSelectionMode.setVisibility(View.GONE);
         glLoading.setVisibility(View.GONE);
     }
 
     private void displayLoading() {
         btnRefresh.setVisibility(View.GONE);
-        btnStart.setVisibility(View.GONE);
+        llSelectionMode.setVisibility(View.GONE);
         glLoading.setVisibility(View.VISIBLE);
         dotsProgressBar.showNow();
 
@@ -143,15 +170,18 @@ public class ConfigurationFragment extends Fragment {
      *
      * @return true if the bluetooth is activated, false otherwise
      */
-    private boolean checkBluetooth() {
+    private boolean checkBluetooth() throws ConfigurationException {
         boolean result = false;
         if (mBluetoothAdapter == null) {
+            String error = "Bluetooth not supported";
             // Device does not support Bluetooth
-            Log.d(MainActivity.TAG, "Bluetooth not supported");
-            tvStatusBluetooh.setText("Bluetooth not supported");
+            Log.d(MainActivity.TAG, error);
+            tvStatusBluetooh.setText(error);
+            throw new ConfigurationException(error);
         } else {
             if (!mBluetoothAdapter.isEnabled()) {
                 setImageView(imgBluetooth, R.mipmap.invalid);
+                setImageView(imgPaired, R.mipmap.invalid);
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             } else {
@@ -168,7 +198,7 @@ public class ConfigurationFragment extends Fragment {
      *
      * @return
      */
-    private boolean retrievePairedDevice() {
+    private boolean retrievePairedDevice() throws ConfigurationException {
         boolean result = false;
         // Retrieving the paired device
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -180,7 +210,9 @@ public class ConfigurationFragment extends Fragment {
             result = true;
         } else {
             setImageView(imgPaired, R.mipmap.invalid);
-            Log.d(MainActivity.TAG, "Not paired");
+            String error = "Not paired";
+            Log.d(MainActivity.TAG, error);
+            throw new ConfigurationException(error);
         }
 
         return result;
@@ -194,12 +226,23 @@ public class ConfigurationFragment extends Fragment {
         connectDevice.execute();
     }
 
+    /**
+     * Set the image for the imageView
+     *
+     * @param imageView Reference of the imageView
+     * @param resource  Resource of the image
+     */
     private void setImageView(ImageView imageView, int resource) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             imageView.setImageDrawable(getResources().getDrawable(resource, getActivity().getTheme()));
         } else {
             imageView.setImageDrawable(getResources().getDrawable(resource));
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        displayRefreshButton();
     }
 
     /**
@@ -243,8 +286,8 @@ public class ConfigurationFragment extends Fragment {
                 // until it succeeds or throws an exception
                 Log.d(MainActivity.TAG, "Trying to connect with the socket...");
                 bluetoothSocket.connect();
-                Log.d(MainActivity.TAG, "Socket connected " + bluetoothSocket.getRemoteDevice().getName() + ".");
-                Log.d(MainActivity.TAG, "Socket connected " + bluetoothSocket.getRemoteDevice().getUuids()[0].getUuid());
+                Log.d(MainActivity.TAG, "Socket connected (Name) " + bluetoothSocket.getRemoteDevice().getName() + ".");
+                Log.d(MainActivity.TAG, "Socket connected (UUID) " + bluetoothSocket.getRemoteDevice().getUuids()[0].getUuid());
                 result = true;
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
@@ -255,9 +298,7 @@ public class ConfigurationFragment extends Fragment {
                     Log.d(MainActivity.TAG, "Closing socket fail " + closeException.getMessage());
                 }
             }
-
             return result;
-
         }
 
         @Override
@@ -270,6 +311,5 @@ public class ConfigurationFragment extends Fragment {
                 displayRefreshButton();
             }
         }
-
     }
 }

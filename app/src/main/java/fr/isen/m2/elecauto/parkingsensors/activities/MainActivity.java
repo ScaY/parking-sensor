@@ -1,10 +1,12 @@
-package fr.isen.m2.elecauto.parkingsensors;
+package fr.isen.m2.elecauto.parkingsensors.activities;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+
+import fr.isen.m2.elecauto.parkingsensors.R;
+import fr.isen.m2.elecauto.parkingsensors.fragments.ConfigurationFragment;
 
 public class MainActivity extends AppCompatActivity {
 
