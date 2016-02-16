@@ -1,19 +1,22 @@
 package fr.isen.m2.elecauto.parkingsensors.fragments;
 
 import android.bluetooth.BluetoothSocket;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
-import android.view.animation.DecelerateInterpolator;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.isen.m2.elecauto.parkingsensors.R;
+import fr.isen.m2.elecauto.parkingsensors.activities.MainActivity;
 import fr.isen.m2.elecauto.parkingsensors.threads.RetrieveData;
 import fr.isen.m2.elecauto.parkingsensors.threads.RetrieveDataParking;
 
@@ -24,6 +27,8 @@ public class ParkingFragment extends SocketFragment {
 
     private TextView tvDistance;
     private AnimationSet animation;
+    private List<ImageView> circles;
+    private MediaPlayer mp;
 
     public static ParkingFragment newInstance(BluetoothSocket mmSocket) {
         ParkingFragment fragment = new ParkingFragment();
@@ -37,23 +42,14 @@ public class ParkingFragment extends SocketFragment {
         // Inflate the view
         View view = inflater.inflate(R.layout.fragment_parking, container, false);
 
-        // Retrieving the view element
-        tvDistance = (TextView) view.findViewById(R.id.sensor_tv_distance);
+        circles = new ArrayList<>(4);
+        circles.add((ImageView) view.findViewById(R.id.circle1));
+        circles.add((ImageView) view.findViewById(R.id.circle2));
+        circles.add((ImageView) view.findViewById(R.id.circle3));
+        circles.add((ImageView) view.findViewById(R.id.circle4));
 
 
-        Animation fadeIn = new AlphaAnimation(0, 1);
-        fadeIn.setInterpolator(new DecelerateInterpolator());
-        fadeIn.setDuration(1000);
-
-        Animation fadeOut = new AlphaAnimation(1, 0);
-        fadeOut.setInterpolator(new AccelerateInterpolator());
-        fadeOut.setStartOffset(1000);
-        fadeOut.setDuration(1000);
-
-        animation = new AnimationSet(false);
-        animation.addAnimation(fadeIn);
-        animation.addAnimation(fadeOut);
-        tvDistance.setAnimation(animation);
+        mp = MediaPlayer.create(getContext(), R.raw.warning_sound);
 
         readData();
 
@@ -61,16 +57,37 @@ public class ParkingFragment extends SocketFragment {
     }
 
     public void readData() {
+        final ParkingFragment ref = this;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 // Read the data
-                RetrieveData retrieveData = new RetrieveDataParking(bluetoothSocket, getActivity(),
-                        animation, tvDistance);
+                RetrieveData retrieveData = new RetrieveDataParking(bluetoothSocket, getActivity(), ref);
                 retrieveData.run();
             }
         }).start();
     }
 
+    public void updateCircle(int distance) {
+        Log.d(MainActivity.TAG, "Distance " + distance);
+        distance = Math.min(distance, 4);
+        for (int i = 0; i < distance; i++) {
+            circles.get(i).setVisibility(View.VISIBLE);
+        }
+        if (distance == 1) {
+            mp.start();
+        } else {
+            if (mp.isPlaying()) {
+                mp.stop();
+                mp.release();
+                mp = MediaPlayer.create(getActivity(), R.raw.warning_sound);
+            }
+        }
+        if (distance < 4) {
+            for (int i = distance; i < 4; i++) {
+                circles.get(i).setVisibility(View.GONE);
+            }
+        }
+    }
 
 }

@@ -32,7 +32,7 @@ public class RetrieveDataAlarm extends RetrieveData {
             previousValue = Integer.valueOf(value);
         }
 
-        if (isInteger(value, 10) && previousValue != Integer.valueOf(value)) {
+        if (isInteger(value) && previousValue != Integer.valueOf(value)) {
             FragmentManager fm = activity.getSupportFragmentManager();
             FragmentTransaction ft = fm.beginTransaction();
             ft.replace(R.id.container, AlarmNotSafeFragment.newInstance());
@@ -41,12 +41,10 @@ public class RetrieveDataAlarm extends RetrieveData {
         }
     }
 
-    private boolean isInteger(String s, int radix) {
+    private boolean isInteger(String s) {
         Scanner sc = new Scanner(s.trim());
-        if (!sc.hasNextInt(radix)) return false;
-        // we know it starts with a valid int, now make sure
-        // there's nothing left!
-        sc.nextInt(radix);
+        if (!sc.hasNextInt()) return false;
+        sc.nextInt();
         boolean result = !sc.hasNext();
         sc.close();
         return result;

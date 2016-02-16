@@ -2,8 +2,10 @@ package fr.isen.m2.elecauto.parkingsensors.threads;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
-import android.view.animation.AnimationSet;
-import android.widget.TextView;
+import android.util.Log;
+
+import fr.isen.m2.elecauto.parkingsensors.activities.MainActivity;
+import fr.isen.m2.elecauto.parkingsensors.fragments.ParkingFragment;
 
 /**
  * Created by stephane on 14/02/16.
@@ -11,15 +13,12 @@ import android.widget.TextView;
 public class RetrieveDataParking extends RetrieveData {
 
     private Activity activity;
-    private AnimationSet animationSet;
-    private TextView textView;
+    private ParkingFragment fragment;
 
-    public RetrieveDataParking(BluetoothSocket socket, Activity activity, AnimationSet animationSet,
-                               TextView textView) {
+    public RetrieveDataParking(BluetoothSocket socket, Activity activity, ParkingFragment fragment) {
         super(socket);
         this.activity = activity;
-        this.animationSet = animationSet;
-        this.textView = textView;
+        this.fragment = fragment;
     }
 
     @Override
@@ -27,9 +26,12 @@ public class RetrieveDataParking extends RetrieveData {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                // Start the animation.
-                animationSet.start();
-                textView.setText(finalValue);
+                try{
+                    int distance = Integer.parseInt(finalValue);
+                    fragment.updateCircle(distance);
+                }catch (NumberFormatException e){
+                    Log.d(MainActivity.TAG, "Bad distance");
+                }
             }
         });
 
