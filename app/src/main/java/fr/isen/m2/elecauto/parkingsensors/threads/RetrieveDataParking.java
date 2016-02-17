@@ -28,7 +28,9 @@ public class RetrieveDataParking extends RetrieveData {
             public void run() {
                 try{
                     int distance = Integer.parseInt(finalValue);
-                    fragment.updateCircle(distance);
+                    if(distance > 0 && distance < 5){
+                        fragment.updateCircle(distance);
+                    }
                 }catch (NumberFormatException e){
                     Log.d(MainActivity.TAG, "Bad distance");
                 }

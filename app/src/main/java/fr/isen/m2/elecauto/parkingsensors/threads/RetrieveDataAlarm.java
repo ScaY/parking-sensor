@@ -2,14 +2,13 @@ package fr.isen.m2.elecauto.parkingsensors.threads;
 
 import android.bluetooth.BluetoothSocket;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
-import java.util.Scanner;
+import java.util.LinkedList;
+import java.util.List;
 
-import fr.isen.m2.elecauto.parkingsensors.R;
 import fr.isen.m2.elecauto.parkingsensors.activities.MainActivity;
-import fr.isen.m2.elecauto.parkingsensors.fragments.AlarmNotSafeFragment;
+import fr.isen.m2.elecauto.parkingsensors.fragments.AlarmFragment;
 
 /**
  * Created by stephane on 14/02/16.
@@ -17,36 +16,51 @@ import fr.isen.m2.elecauto.parkingsensors.fragments.AlarmNotSafeFragment;
 public class RetrieveDataAlarm extends RetrieveData {
 
     private FragmentActivity activity;
-    private int previousValue;
+    private AlarmFragment alarmFragment;
+    private List<Integer> previousValues;
 
-    public RetrieveDataAlarm(BluetoothSocket socket, FragmentActivity activity) {
+    public RetrieveDataAlarm(BluetoothSocket socket, FragmentActivity activity, AlarmFragment alarmFragment) {
         super(socket);
         this.activity = activity;
-        previousValue = -1;
+        this.alarmFragment = alarmFragment;
+        this.previousValues = new LinkedList<>();
+
     }
 
     @Override
     public void postAction(String value) {
+        try {
+            if(previousValues.size() > 10){
+                previousValues.clear();
+            }
 
-        if (previousValue == -1) {
-            previousValue = Integer.valueOf(value);
-        }
+            int distance = Integer.valueOf(value);
+            previousValues.add(distance);
 
-        if (isInteger(value) && previousValue != Integer.valueOf(value)) {
-            FragmentManager fm = activity.getSupportFragmentManager();
-            FragmentTransaction ft = fm.beginTransaction();
-            ft.replace(R.id.container, AlarmNotSafeFragment.newInstance());
-            ft.addToBackStack(MainActivity.TAG);
-            ft.commit();
+            if (hasBeenMoved()) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        alarmFragment.displayNotSafe();
+                    }
+                });
+            }
+        } catch (NumberFormatException e) {
+            Log.d(MainActivity.TAG, "Exception when retrieved distance : " + e.getMessage());
         }
     }
 
-    private boolean isInteger(String s) {
-        Scanner sc = new Scanner(s.trim());
-        if (!sc.hasNextInt()) return false;
-        sc.nextInt();
-        boolean result = !sc.hasNext();
-        sc.close();
+    private boolean hasBeenMoved() {
+        boolean result = false;
+        for (int i = 0; i < previousValues.size() && !result; i++) {
+            Integer value = previousValues.get(i);
+            for (int j = i + 1; j < previousValues.size() && !result; j++) {
+                if (Math.abs(value - previousValues.get(j)) > 3) {
+                    result = true;
+                }
+            }
+        }
         return result;
     }
+
 }

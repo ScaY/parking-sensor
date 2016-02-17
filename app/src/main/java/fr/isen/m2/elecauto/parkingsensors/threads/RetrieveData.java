@@ -70,8 +70,13 @@ public abstract class RetrieveData extends Thread {
 
     public void cancel() {
         try {
+            Log.d(MainActivity.TAG, "Trying to close the Socket");
             mmSocket.close();
+            mmInStream.close();
+            mmOutStream.close();
+            Log.d(MainActivity.TAG, "Socket closed");
         } catch (IOException e) {
+            Log.d(MainActivity.TAG, "Exception when trying to close the socket");
         }
     }
 

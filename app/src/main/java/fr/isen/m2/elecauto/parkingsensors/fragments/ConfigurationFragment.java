@@ -56,6 +56,8 @@ public class ConfigurationFragment extends Fragment {
     private GridLayout glLoading;
     private com.zl.reik.dilatingdotsprogressbar.DilatingDotsProgressBar dotsProgressBar;
 
+    private ConnectDevice connectDevice;
+
     public static ConfigurationFragment newInstance() {
         return new ConfigurationFragment();
     }
@@ -98,7 +100,6 @@ public class ConfigurationFragment extends Fragment {
                         boolean retrievedPairedDevice = retrievePairedDevice();
                         if (retrievedPairedDevice) {
                             connectDevice();
-                            //displayStartButton();
                         }
                     }
                 } catch (ConfigurationException e) {
@@ -110,13 +111,14 @@ public class ConfigurationFragment extends Fragment {
 
         // Start to retrieve the distance from the sensor
         // and replace the fragment to display the distance.
+        final ConfigurationFragment ref = this;
         btnParking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.replace(R.id.container, ParkingFragment.newInstance(bluetoothSocket));
-                ft.addToBackStack(MainActivity.TAG);
+                ft.replace(R.id.container, ParkingFragment.newInstance(bluetoothSocket, ref));
+                ft.addToBackStack(ParkingFragment.TAG);
                 ft.commit();
             }
         });
@@ -127,8 +129,8 @@ public class ConfigurationFragment extends Fragment {
             public void onClick(View v) {
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.replace(R.id.container, AlarmFragment.newInstance(bluetoothSocket));
-                ft.addToBackStack(MainActivity.TAG);
+                ft.replace(R.id.container, AlarmFragment.newInstance(bluetoothSocket, ref));
+                ft.addToBackStack(AlarmFragment.TAG);
                 ft.commit();
             }
         });
@@ -222,7 +224,10 @@ public class ConfigurationFragment extends Fragment {
      * Create a connection with the connected device
      */
     public void connectDevice() {
-        ConnectDevice connectDevice = new ConnectDevice(device);
+        if (connectDevice != null) {
+            connectDevice.cancel();
+        }
+        connectDevice = new ConnectDevice(device);
         connectDevice.execute();
     }
 
@@ -238,6 +243,13 @@ public class ConfigurationFragment extends Fragment {
         } else {
             imageView.setImageDrawable(getResources().getDrawable(resource));
         }
+    }
+
+    public void init() {
+        displayRefreshButton();
+        setImageView(imgBluetooth, R.mipmap.invalid);
+        setImageView(imgPaired, R.mipmap.invalid);
+        setImageView(imgConnected, R.mipmap.invalid);
     }
 
     @Override
@@ -271,6 +283,7 @@ public class ConfigurationFragment extends Fragment {
             try {
                 bluetoothSocket.close();
             } catch (IOException e) {
+                Log.d(MainActivity.TAG, "Exception when closing the bluetoothSocket");
             }
         }
 
