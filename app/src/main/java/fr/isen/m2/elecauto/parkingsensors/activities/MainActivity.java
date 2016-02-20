@@ -4,9 +4,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
 import fr.isen.m2.elecauto.parkingsensors.R;
 import fr.isen.m2.elecauto.parkingsensors.fragments.ClosingFragment;
@@ -34,8 +34,6 @@ public class MainActivity extends AppCompatActivity {
         if (currentFragment instanceof ClosingFragment) {
             Log.d(TAG, "Closing the fragment");
             ((ClosingFragment) currentFragment).close();
-        } else {
-            Log.d(TAG, "Go damn it");
         }
     }
 
